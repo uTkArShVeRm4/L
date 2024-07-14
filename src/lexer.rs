@@ -28,12 +28,46 @@ impl Lexer {
         self.position = self.read_position;
         self.read_position += 1;
     }
-
+    pub fn peek_char(&mut self) -> char {
+        if self.read_position >= self.input.len() {
+            '\0'
+        } else {
+            self.input.chars().nth(self.read_position).unwrap()
+        }
+    }
     pub fn next_token(&mut self) -> Token {
         self.skip_whitespaces();
         let ttype = match self.ch {
-            '=' => TokenType::ASSIGN,
+            '=' => {
+                if self.peek_char() == '=' {
+                    self.read_char(); // to read the next =
+                    self.read_char(); // to move to the next char
+                    return Token {
+                        ttype: TokenType::EQ,
+                        literal: "==".to_string(),
+                    };
+                } else {
+                    TokenType::ASSIGN
+                }
+            }
             '+' => TokenType::PLUS,
+            '-' => TokenType::MINUS,
+            '*' => TokenType::ASTERISK,
+            '/' => TokenType::SLASH,
+            '!' => {
+                if self.peek_char() == '=' {
+                    self.read_char(); // to read the next =
+                    self.read_char(); // to move to the next char
+                    return Token {
+                        ttype: TokenType::NOTEQ,
+                        literal: "!=".to_string(),
+                    };
+                } else {
+                    TokenType::BANG
+                }
+            }
+            '>' => TokenType::GT,
+            '<' => TokenType::LT,
             ';' => TokenType::SEMICOLON,
             '{' => TokenType::LBRACE,
             '}' => TokenType::RBRACE,
@@ -61,7 +95,7 @@ impl Lexer {
         };
 
         let literal = self.ch.to_string();
-        self.read_char();
+        self.read_char(); // to move to the next char
         Token { ttype, literal }
     }
 
